@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const _ = reruire('lodash');
+const _ = require('lodash');
 
 const port = process.env.PORT || 3000;
 const { mongoose } = require('./db/mongoose');
