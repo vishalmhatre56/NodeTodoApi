@@ -19,8 +19,14 @@ app.post('/todos', (req, res) => {
     }, (err) => {
         res.status(400).send(err);
     })
-})
-
+});
+app.get('/todos', (req, res) => {
+    Todo.find().then((todos) => {
+        res.send({todos});
+    }, (err) => {
+        res.status(400).send(err);
+    })
+});
 
 app.listen(port, () => {
     console.log(`Server is up and running on port: ${port}`)
