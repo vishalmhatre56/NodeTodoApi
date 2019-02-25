@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -11,9 +12,6 @@ var UserSchema = new mongoose.Schema({
         minlength: 1,
         unique: true,
         validate: {
-            // validator: (value)=>{
-            //     return validator.isEmail(value);
-            // },
             validator: validator.isEmail,
             message: '{value} is not a valid email.'
         }
@@ -39,7 +37,7 @@ UserSchema.methods.toJSON = function () {
     var user = this;
     var userObject = user.toObject();
 
-    return _.pick(userObject,['_id','email']);
+    return _.pick(userObject, ['_id', 'email']);
 };
 
 UserSchema.methods.generateAuthToken = function () {
@@ -49,11 +47,41 @@ UserSchema.methods.generateAuthToken = function () {
     var token = jwt.sign({ _id: user._id.toString(), access }, 'vish123').toString();
     user.tokens = user.tokens.concat([{ access, token }]);
 
-    return user.save().then(()=>{
+    return user.save().then(() => {
         return token;
     })
 };
 
+UserSchema.statics.findByToken = function (token) {
+    var User = this;
+    var decoded;
+
+    try {
+        decoded = jwt.verify(token, 'vish123');
+    } catch (e) {
+        return Promise.reject();
+    }
+
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    })
+}
+
+UserSchema.pre('save', function(next){
+    var user = this;
+    if(user.isModified('password')){
+        bcrypt.genSalt(10,(err, salt)=>{
+            bcrypt.hash(user.password,salt,(err, res)=>{
+                user.password = res;
+                next();
+            })
+        })
+    }else{
+        next();
+    }
+})
 var User = mongoose.model('User', UserSchema);
 
 module.exports = {
