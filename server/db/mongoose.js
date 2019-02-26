@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 const dbName = "TodoApp";
-// mongoose.connect(`mongodb://localhost:27017/TodoApp`
-mongoose.connect(`mongodb+srv://cluster0-cpvan.mongodb.net/TodoApp?retryWrites=true`, {
+// mongoose.connect(`mongodb://localhost:27017/${dbName}`
+mongoose.connect(`mongodb+srv://cluster0-cpvan.mongodb.net/${dbName}?retryWrites=true`, {
     auth: {
         user: 'vishalmhatre56',
         password: 'vishal#56',

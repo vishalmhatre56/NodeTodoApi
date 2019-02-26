@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const _ = require('lodash');
 
 const port = process.env.PORT || 3000;
-const { mongoose } = require('./db/mongoose');
+const { mongoose } = require('./db/mongoose');//this is needed to connect database server
 const { Todo } = require('./models/todo');
 const { User } = require('./models/user')
 const { ObjectId } = require('mongodb');
@@ -13,9 +13,10 @@ var app = express();
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     var todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _ownerId: req.user._id
     });
     todo.save().then((doc) => {
         res.send(doc);
@@ -23,20 +24,20 @@ app.post('/todos', (req, res) => {
         res.status(400).send(err);
     });
 });
-app.get('/todos', (req, res) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({ _ownerId: req.user._id }).then((todos) => {
         res.send({ todos });
     }, (err) => {
         res.status(400).send(err);
     });
 });
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
     if (!ObjectId.isValid(id))
         return res.status(400).send("Id is not valid!");
 
-    Todo.findById(id).then((todo) => {
+    Todo.findOne({_id: id, _ownerId: req.user._id}).then((todo) => {
         if (todo)
             return res.send({ todo });
         return res.status(404).send('No todo found!')
@@ -45,12 +46,12 @@ app.get('/todos/:id', (req, res) => {
     });
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
     if (!ObjectId.isValid(id))
         return res.status(400).send("Id is not valid!");
 
-    Todo.findByIdAndRemove(id).then((todo) => {
+    Todo.findOneAndRemove({_id: id, _ownerId: req.user._id}).then((todo) => {
         if (todo)
             return res.send({ todo });
         return res.status(404).send('No todo found!')
@@ -59,7 +60,7 @@ app.delete('/todos/:id', (req, res) => {
     });
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
     var body = _.pick(req.body, ['text', 'completed']);
 
@@ -73,7 +74,7 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, {
+    Todo.findOneAndUpdate({_id: id, _ownerId: req.user._id}, {
         $set: body
     }, { new: true }).then((todo) => {
         if (todo)
@@ -99,7 +100,7 @@ app.post('/users', (req, res) => {
 app.post('/users/login', (req, res) => {
     var body = _.pick(req.body, ['email', 'password']);
     User.findByCredentials(body.email, body.password).then((user) => {
-        return user.generateAuthToken().then((token)=>{
+        return user.generateAuthToken().then((token) => {
             res.header('x-auth', token).send(user)
         })
     }).catch((err) => {
@@ -107,10 +108,10 @@ app.post('/users/login', (req, res) => {
     })
 });
 
-app.delete('/users/me/token', authenticate, (req, res)=>{
-    req.user.removeToken(req.token).then(()=>{
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
         res.status(200).send();
-    },()=>{
+    }, () => {
         res.status(400).send();
     })
 })
