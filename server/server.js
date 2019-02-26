@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
 
-const port = process.env.PORT || 3000;
+const { port } = require('../server/config/config')
 const { mongoose } = require('./db/mongoose');//this is needed to connect database server
 const { Todo } = require('./models/todo');
 const { User } = require('./models/user')
@@ -37,7 +37,7 @@ app.get('/todos/:id', authenticate, (req, res) => {
     if (!ObjectId.isValid(id))
         return res.status(400).send("Id is not valid!");
 
-    Todo.findOne({_id: id, _ownerId: req.user._id}).then((todo) => {
+    Todo.findOne({ _id: id, _ownerId: req.user._id }).then((todo) => {
         if (todo)
             return res.send({ todo });
         return res.status(404).send('No todo found!')
@@ -51,7 +51,7 @@ app.delete('/todos/:id', authenticate, (req, res) => {
     if (!ObjectId.isValid(id))
         return res.status(400).send("Id is not valid!");
 
-    Todo.findOneAndRemove({_id: id, _ownerId: req.user._id}).then((todo) => {
+    Todo.findOneAndRemove({ _id: id, _ownerId: req.user._id }).then((todo) => {
         if (todo)
             return res.send({ todo });
         return res.status(404).send('No todo found!')
@@ -74,7 +74,7 @@ app.patch('/todos/:id', authenticate, (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findOneAndUpdate({_id: id, _ownerId: req.user._id}, {
+    Todo.findOneAndUpdate({ _id: id, _ownerId: req.user._id }, {
         $set: body
     }, { new: true }).then((todo) => {
         if (todo)

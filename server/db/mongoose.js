@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-
+const { dbName } = require('../config/config');
 mongoose.Promise = global.Promise;
-const dbName = "TodoApp";
+
 // mongoose.connect(`mongodb://localhost:27017/${dbName}`
 mongoose.connect(`mongodb+srv://cluster0-cpvan.mongodb.net/${dbName}?retryWrites=true`, {
     auth: {
@@ -9,11 +9,11 @@ mongoose.connect(`mongodb+srv://cluster0-cpvan.mongodb.net/${dbName}?retryWrites
         password: 'vishal#56',
     }
 }
-).then(()=>{
+).then(() => {
     console.log("Connected to remote MongoDb Server.")
 }).catch(err => {
-     console.log("-----\nUnable to connect to the mongodb server,\nError:", err) 
-    });
+    console.log("-----\nUnable to connect to the mongodb server,\nError:", err)
+});
 
 module.exports = {
     mongoose
