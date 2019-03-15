@@ -7,7 +7,10 @@ mongoose.connect(`mongodb+srv://cluster0-cpvan.mongodb.net/${dbName}?retryWrites
     auth: {
         user: 'vishalmhatre56',
         password: 'vishal#56',
-    }
+    },
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false
 }
 ).then(() => {
     console.log("Connected to remote MongoDb Server.")
