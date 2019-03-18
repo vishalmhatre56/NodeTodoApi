@@ -30,12 +30,12 @@ router.get('/todos', authenticate, async (req, res) => {
 router.get('/todos/:id', authenticate, async (req, res) => {
     var id = req.params.id;
     if (!ObjectId.isValid(id))
-        return res.status(400).send("Id is not valid!");
+        return res.status(400).send({message:"Id is not valid!"});
     try {
         var todo = await Todo.findOne({ _id: id, _ownerId: req.user._id });
         if (todo)
             return res.send({ todo });
-        return res.status(404).send('No todo found!')
+        return res.status(404).send({error:'No todo found!'})
     } catch (err) {
         res.status(400).send(err);
     }
@@ -44,13 +44,13 @@ router.get('/todos/:id', authenticate, async (req, res) => {
 router.delete('/todos/:id', authenticate, async (req, res) => {
     var id = req.params.id;
     if (!ObjectId.isValid(id))
-        return res.status(400).send("Id is not valid!");
+        return res.status(400).send({error:"Id is not valid!"});
 
     try {
         var todo = await Todo.findOneAndRemove({ _id: id, _ownerId: req.user._id });
         if (todo)
             return res.send({ todo });
-        return res.status(404).send('No todo found!')
+        return res.status(404).send({error:'No todo found!'})
     } catch (err) {
         res.status(400).send(err);
     }
@@ -62,14 +62,14 @@ router.patch('/todos/:id', authenticate, async (req, res) => {
     const isValidOpration = updates.every((update) => allowedupdateds.includes(update));
 
     if (!isValidOpration) {
-        return res.status(400).send("Invalid update property!");
+        return res.status(400).send({error:"Invalid update property!"});
     }
 
     var id = req.params.id;
     var body = _.pick(req.body, allowedupdateds);
 
     if (!ObjectId.isValid(id))
-        return res.status(400).send("Id is not valid!");
+        return res.status(400).send({error:"Id is not valid!"});
 
     if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = new Date().getTime();
@@ -84,7 +84,7 @@ router.patch('/todos/:id', authenticate, async (req, res) => {
         }, { new: true });
         if (todo)
             return res.send({ todo });
-        return res.status(404).send('No todo found!')
+        return res.status(404).send({error:'No todo found!'});
     } catch (err) {
         res.status(400).send(err);
     }
