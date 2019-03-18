@@ -28,11 +28,12 @@ router.get('/todos', authenticate, async (req, res) => {
 });
 
 router.get('/todos/:id', authenticate, async (req, res) => {
-    var id = req.params.id;
-    if (!ObjectId.isValid(id))
+    var _id = req.params.id;
+    if (!ObjectId.isValid(_id))
         return res.status(400).send({message:"Id is not valid!"});
     try {
-        var todo = await Todo.findOne({ _id: id, _ownerId: req.user._id });
+        var todo = await Todo.findOne({ _id, _ownerId: req.user._id });
+        await todo.populate('_ownerId').execPopulate();
         if (todo)
             return res.send({ todo });
         return res.status(404).send({error:'No todo found!'})

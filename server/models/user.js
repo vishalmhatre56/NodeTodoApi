@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const bcrypt = require('bcryptjs');
 const { jwtSecret } = require('../config/config');
+const { Todo } = require('./todo')
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -33,6 +34,12 @@ var UserSchema = new mongoose.Schema({
         }
     }]
 });
+
+UserSchema.virtual('todos', {
+    ref: 'Todo',
+    localField: '_id',
+    foreignField: '_ownerId'
+})
 
 UserSchema.methods.toJSON = function () {
     var user = this;
@@ -114,6 +121,18 @@ UserSchema.pre('save', function (next) {
         next();
     }
 })
+UserSchema.pre('remove', async function (next) {
+    var user = this;
+    try {
+        await Todo.deleteMany({ _ownerId: user._id });
+        next();
+    } catch (err) {
+
+        console.log(err)
+        res.status(500).send(err)
+    }
+})
+
 var User = mongoose.model('User', UserSchema);
 
 module.exports = {
