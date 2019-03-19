@@ -33,7 +33,9 @@ var UserSchema = new mongoose.Schema({
             require: true
         }
     }]
-});
+}, {
+        timestamps: true
+    });
 
 UserSchema.virtual('todos', {
     ref: 'Todo',
