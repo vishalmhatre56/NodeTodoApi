@@ -2,6 +2,21 @@ const express = require('express');
 const { authenticate } = require('../middleware/authenticate');
 const { User } = require('../models/user')
 const _ = require('lodash');
+const multer = require('multer');
+
+const upload = multer({
+    dest: 'avatars',
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, callback) {
+        if (!file.originalname.match(/\.(jpg|png|jpeg)$/)) {
+            return callback(new Error("Please upload an image file"));
+        }
+
+        callback(undefined, true)
+    }
+});
 
 const router = new express.Router();
 
@@ -82,6 +97,12 @@ router.delete('/users/me/token', authenticate, (req, res) => {
 
 router.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
+});
+
+router.post('/users/me/avatar', authenticate, upload.single('avatar'), (req, res) => {
+    res.send({ message: "avatar uploaded succesfully" });
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
 });
 
 router.delete('/users/me', authenticate, async (req, res) => {
