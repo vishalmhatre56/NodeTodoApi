@@ -7,8 +7,10 @@ const { authenticate } = require('../middleware/authenticate');
 const router = new express.Router();
 
 router.post('/todos', authenticate, async (req, res) => {
+    var body = _.pick(req.body,["text","completed"])
     var todo = new Todo({
-        text: req.body.text,
+        text: body.text,
+        completed: body.completed,
         _ownerId: req.user._id
     });
     try {
@@ -18,10 +20,34 @@ router.post('/todos', authenticate, async (req, res) => {
         res.status(400).send(err);
     }
 });
+// GET /todos?completed=false
+// GET /todos?limit=10&skip=0
+// GET /todos?sortBy=createdAt_desc
 router.get('/todos', authenticate, async (req, res) => {
+    var  match = {};
+    var sort = {}
+
+    if(req.query.completed){
+        match.completed = req.query.completed === 'true' 
+    }
+    
+    if(req.query.sortBy){
+        var parts = req.query.sortBy.split('_'); 
+        sort[parts[0]] = parts[1] === 'desc'? -1 : 1; 
+    }
+
     try {
-        var todos = await Todo.find({ _ownerId: req.user._id });
-        res.send(todos);
+        // var todos = await Todo.find({ _ownerId: req.user._id });
+        await req.user.populate({
+            path: 'todos',
+            match,
+            options:{
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip),
+                sort
+            }
+        }).execPopulate();
+        res.send(req.user.todos);
     } catch (err) {
         res.status(400).send(err);
     }
