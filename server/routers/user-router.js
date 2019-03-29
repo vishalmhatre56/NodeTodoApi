@@ -5,7 +5,6 @@ const _ = require('lodash');
 const multer = require('multer');
 
 const upload = multer({
-    dest: 'avatars',
     limits: {
         fileSize: 1000000
     },
@@ -99,7 +98,9 @@ router.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
 });
 
-router.post('/users/me/avatar', authenticate, upload.single('avatar'), (req, res) => {
+router.post('/users/me/avatar', authenticate, upload.single('avatar'), async (req, res) => {
+    req.user.avatar = req.file.buffer;
+    await req.user.save();
     res.send({ message: "avatar uploaded succesfully" });
 }, (error, req, res, next) => {
     res.status(400).send({ error: error.message });
