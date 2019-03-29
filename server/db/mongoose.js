@@ -2,7 +2,11 @@ const mongoose = require('mongoose');
 const { dbName } = require('../config/config');
 mongoose.Promise = global.Promise;
 
-// mongoose.connect(`mongodb://localhost:27017/${dbName}`
+// mongoose.connect(`mongodb://localhost:27017/${dbName}?retryWrites=true`, {
+//     useNewUrlParser: true,
+//     useCreateIndex: true,
+//     useFindAndModify: false
+// }
 mongoose.connect(`mongodb+srv://cluster0-cpvan.mongodb.net/${dbName}?retryWrites=true`, {
     auth: {
         user: 'vishalmhatre56',
