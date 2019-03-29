@@ -4,6 +4,7 @@ const { User } = require('../models/user');
 const _ = require('lodash');
 const multer = require('multer');
 const sharp = require('sharp');
+const { sendWelcomeEmail, sendCancellationEmail } = require('../emails/account')
 
 const upload = multer({
     limits: {
@@ -25,6 +26,7 @@ router.post('/users', (req, res) => {
     var user = new User(body);
 
     user.save().then(() => {
+        sendWelcomeEmail(user.email)
         return user.generateAuthToken();
     }).then((token) => {
         res.header('x-auth', token).status(201).send(user);
@@ -133,6 +135,7 @@ router.get('/users/:id/avatar', async (req, res) => {
 router.delete('/users/me', authenticate, async (req, res) => {
     try {
         await req.user.remove();
+        sendCancellationEmail(req.user.email);
         res.send({ message: "User removed successfully." });
     } catch (err) {
         res.status(500).send({ error: "Operation failed" });
